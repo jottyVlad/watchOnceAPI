@@ -1,0 +1,3 @@
+*.http
+*.db
+.idea/
