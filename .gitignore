@@ -2,3 +2,4 @@
 *.db
 .idea/
 docker.env
+.ruff_cache

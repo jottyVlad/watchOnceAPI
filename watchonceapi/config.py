@@ -1,1 +1,9 @@
+import os
+
 DATABASE_DIRECTORY = "./woa.db"
+
+MINIO_ACCESS_KEY = os.getenv("MINIO_SERVER_ACCESS_KEY")
+MINIO_SECRET_KEY = os.getenv("MINIO_SERVER_SECRET_KEY")
+
+WATCHONCE_BUCKET_NAME = "watchonce"
+MINIO_URL = "minio:9000"
