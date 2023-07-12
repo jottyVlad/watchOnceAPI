@@ -5,15 +5,14 @@ services:
     build: .
     ports:
       - "8000:8000"
-    environment:
-      - MINIO_SERVER_ACCESS_KEY=peUnotSfUXgc5zEbKWzf
-      - MINIO_SERVER_SECRET_KEY=XuFCGADwDuUKucmr2Fle8KJp9D4Uc3eyjGbn8UTg
+    env_file:
+      - docker.env
+
 
   minio:
     image: 'bitnami/minio:latest'
     ports:
       - '9000:9000'
       - '9001:9001'
-    environment:
-      - MINIO_ROOT_USER=minioroot
-      - MINIO_ROOT_PASSWORD=miniopassword
+    env_file:
+      - docker.env
