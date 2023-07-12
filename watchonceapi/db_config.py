@@ -40,7 +40,3 @@ def init_db_tables(connection: Connection):
 
     cur.executescript(transaction)
     cur.close()
-
-
-def close_db_connection(connection: Connection):
-    connection.close()
