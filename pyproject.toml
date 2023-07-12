@@ -8,12 +8,13 @@ authors = ["jotty <bard143games@gmail.com>"]
 python = "^3.9"
 fastapi = "^0.100.0"
 uvicorn = "^0.22.0"
-pypika = "*"
-pydantic = "*"
-python-multipart = "*"
-minio = "*"
+pypika = "^0.48.9"
+pydantic = "^2.0.2"
+python-multipart = "^0.0.6"
+minio = "^7.1.15"
 
 [tool.poetry.dev-dependencies]
+ruff = "^0.0.278"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
