@@ -3,8 +3,8 @@ from fastapi.openapi.utils import get_openapi
 
 from watchonceapi.db_config import con, init_db_tables, close_db_connection
 from watchonceapi.dependencies.minio import get_minio_client
-from watchonceapi.routers.add_secret_router import add_secret_router
-from watchonceapi.routers.get_secret_router import get_secret_router
+from watchonceapi.routers.add_secret import add_secret_router
+from watchonceapi.routers.get_secret import get_secret_router
 
 app = FastAPI()
 
