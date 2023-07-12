@@ -24,7 +24,7 @@ def init_db_tables(connection: Connection):
     create_files_table_if_not_exist_query = (
         Query.create_table(files_table)
         .columns(
-            Column("filename", "VARCHAR(1000)", nullable=False),
+            Column("filepath", "VARCHAR(1000)", nullable=False),
             Column("secret_id", "VARCHAR(36)", nullable=False),
         )
         .foreign_key(
