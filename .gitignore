@@ -1,3 +1,4 @@
 *.http
 *.db
 .idea/
+docker.env
