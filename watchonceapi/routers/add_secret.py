@@ -20,8 +20,8 @@ async def add_secret(
         files: List[UploadFile] = (),
 ):
     secret_dto = validated_secret_dto(secret, files)
-    add_secret_to_db(secret_dto)
-    add_files_to_db(secret_dto)
+    await add_secret_to_db(secret_dto)
+    await add_files_to_db(secret_dto)
     add_files_to_minio(secret_dto)
 
     return get_secret_url(secret_dto,

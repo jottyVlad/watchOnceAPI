@@ -1,10 +1,7 @@
-import sqlite3
-
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
-from watchonceapi.config import DATABASE_DIRECTORY
-from watchonceapi.db_config import init_db_tables
+from watchonceapi.migrations.migration_v1 import init_db_tables
 from watchonceapi.dependencies.container import Container
 from watchonceapi.routers.add_secret import add_secret_router
 from watchonceapi.routers.get_secret import get_secret_router
@@ -24,19 +21,17 @@ def set_docs_schema(_app: FastAPI):
 def create_app() -> FastAPI:
     container = Container()
 
-    app = FastAPI()
-    app.container = container
+    _app = FastAPI()
+    _app.container = container
 
     # TODO: delete initializing tables on server start
-    connection = sqlite3.connect(DATABASE_DIRECTORY, check_same_thread=False)
-    init_db_tables(connection)
-    connection.close()
-    # END TODO
+    init_db_tables()
+    # ENDTODO
 
-    app.include_router(add_secret_router, prefix="/api")
-    app.include_router(get_secret_router, prefix="/api")
-    set_docs_schema(app)
-    return app
+    _app.include_router(add_secret_router, prefix="/api")
+    _app.include_router(get_secret_router, prefix="/api")
+    set_docs_schema(_app)
+    return _app
 
 
 app = create_app()

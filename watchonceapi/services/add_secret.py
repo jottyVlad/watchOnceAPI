@@ -8,7 +8,7 @@ from pydantic import ValidationError
 from pypika import Query
 
 from watchonceapi.config import WATCHONCE_BUCKET_NAME
-from watchonceapi.db_config import secrets_table, files_table
+from watchonceapi.db_config import secrets_table
 from watchonceapi.dependencies.container import Container
 from watchonceapi.schema import SecretDTO, SecretSchema
 from watchonceapi.utils.connection_pool import ConnectionPool
@@ -33,20 +33,20 @@ def validated_secret_dto(secret: str, files: List[UploadFile]) -> SecretDTO:
 
 
 @inject
-def add_secret_to_db(
+async def add_secret_to_db(
         secret_dto: SecretDTO,
         connection_pool: ConnectionPool = Provide[Container.db_connection_pool]
 ):
     with connection_pool.connection() as connection:
-        cursor = connection.cursor()
+        cursor = await connection.cursor()
         add_query = Query.into(secrets_table).insert(
             secret_dto.uuid_,
             secret_dto.text,
             get_expires_at(datetime.datetime.now(), secret_dto.expire_time)
         )
-        cursor.execute(str(add_query))
-        cursor.close()
-        connection.commit()
+        await cursor.execute(str(add_query))
+        await cursor.close()
+        await connection.commit()
 
 
 @inject
@@ -64,8 +64,8 @@ def add_files_to_minio(secret_dto,
 
 
 @inject
-def add_files_to_db(secret_dto: SecretDTO,
-                    connection_pool: ConnectionPool = Provide[Container.db_connection_pool]):
+async def add_files_to_db(secret_dto: SecretDTO,
+                          connection_pool: ConnectionPool = Provide[Container.db_connection_pool]):
     add_file_to_db_query = "INSERT INTO `files` VALUES (?, ?)"
 
     data = [
@@ -74,10 +74,10 @@ def add_files_to_db(secret_dto: SecretDTO,
     ]
 
     with connection_pool.connection() as connection:
-        cursor = connection.cursor()
-        cursor.executemany(add_file_to_db_query, data)
-        cursor.close()
-        connection.commit()
+        cursor = await connection.cursor()
+        await cursor.executemany(add_file_to_db_query, data)
+        await cursor.close()
+        await connection.commit()
 
 
 def get_secret_url(secret_dto: SecretDTO, base_url: str, port: Optional[int]):

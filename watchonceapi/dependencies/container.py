@@ -13,7 +13,7 @@ class Container(containers.DeclarativeContainer):
     wiring_config = containers.WiringConfiguration(packages=['watchonceapi.routers',
                                                              'watchonceapi.services'])
 
-    db_connection_pool = providers.Factory(ConnectionPool,
+    db_connection_pool = providers.Factory(ConnectionPool.create,
                                            max_connections=10,
                                            database=DATABASE_DIRECTORY)
     minio_client = providers.Factory(create_minio_client,

@@ -8,13 +8,10 @@ get_secret_router = APIRouter()
 
 
 @get_secret_router.get("/get/{secret_id}", response_model=ResponseSecretSchema)
-async def get_secret(request: Request,
-                     secret_id: str):
-    secret = get_secret_or_404(secret_id,
-                               request.base_url.hostname,
-                               request.base_url.port)
-    remove_files_from_db(secret_id)
-    remove_secret_from_db(secret_id)
+async def get_secret(secret_id: str):
+    secret = await get_secret_or_404(secret_id)
+    await remove_files_from_db(secret_id)
+    await remove_secret_from_db(secret_id)
     exception404_if_expired(secret.expires_at)
 
     return secret

@@ -1,23 +1,29 @@
 import queue
-import sqlite3
+import aiosqlite
 from contextlib import contextmanager
-from sqlite3 import Connection
+from aiosqlite import Connection
 
 
 class ConnectionPool:
-    def __init__(self, max_connections, database, check_same_thread=False):
-        self.max_connections = max_connections
-        self.database = database
-        self.check_same_thread = check_same_thread
-        self.pool = queue.Queue(maxsize=max_connections)
+    pool: queue.Queue
+    max_connections: int
+    database: str
+
+    @classmethod
+    async def create(cls, max_connections: int, database: str):
+        pool = cls()
+        pool.max_connections = max_connections
+        pool.database = database
+        pool.pool = queue.Queue(maxsize=max_connections)
 
         for _ in range(max_connections):
-            conn = self.create_connection()
-            self.pool.put(conn)
+            conn = await pool.create_connection()
+            pool.pool.put(conn)
 
-    def create_connection(self):
-        return sqlite3.connect(self.database,
-                               check_same_thread=self.check_same_thread)
+        return pool
+
+    async def create_connection(self):
+        return await aiosqlite.connect(self.database)
 
     def get_connection(self, timeout) -> Connection:
         if not timeout:
@@ -38,6 +44,6 @@ class ConnectionPool:
         finally:
             self.release_connection(conn)
 
-    def close(self):
+    async def close(self):
         for conn in self.pool.queue:
-            conn.close()
+            await conn.close()

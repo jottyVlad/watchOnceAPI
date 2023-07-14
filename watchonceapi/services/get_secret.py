@@ -37,10 +37,8 @@ def get_files_links(filepaths: List[str],
 
 
 @inject
-def get_secret_or_404(uuid_: str,
-                      base_url: str,
-                      port: Optional[int],
-                      connection_pool: ConnectionPool = Provide[Container.db_connection_pool]) \
+async def get_secret_or_404(uuid_: str,
+                            connection_pool: ConnectionPool = Provide[Container.db_connection_pool]) \
         -> ResponseSecretSchema:
     get_secret_query = Query. \
         from_(secrets_table). \
@@ -53,21 +51,21 @@ def get_secret_or_404(uuid_: str,
         where(files_table.secret_id == uuid_)
 
     with connection_pool.connection() as connection:
-        cursor = connection.cursor()
-        result = cursor.execute(str(get_secret_query))
-        secret = result.fetchone()
-        cursor.close()
+        cursor = await connection.cursor()
+        result = await cursor.execute(str(get_secret_query))
+        secret = await result.fetchone()
+        await cursor.close()
 
     # if secret is not exists
     if not secret:
         raise HTTPException(status_code=404, detail="Secret not found")
 
     with connection_pool.connection() as connection:
-        cursor = connection.cursor()
-        result = cursor.execute(str(get_files_query))
-        filepaths = result.fetchall()
+        cursor = await connection.cursor()
+        result = await cursor.execute(str(get_files_query))
+        filepaths = await result.fetchall()
         filepaths = [filepath[0] for filepath in filepaths]
-        cursor.close()
+        await cursor.close()
 
     files = get_files_links(filepaths)
 
@@ -78,5 +76,4 @@ def get_secret_or_404(uuid_: str,
 
 def exception404_if_expired(expires_at):
     if int(expires_at) <= datetime.datetime.now().timestamp():
-        print("EXPIRED")
         raise HTTPException(status_code=404, detail="Not found")

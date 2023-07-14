@@ -9,33 +9,33 @@ from watchonceapi.utils.connection_pool import ConnectionPool
 
 
 @inject
-def remove_secret_from_db(uuid_: str,
-                          connection_pool: ConnectionPool = Provide[Container.db_connection_pool]):
+async def remove_secret_from_db(uuid_: str,
+                                connection_pool: ConnectionPool = Provide[Container.db_connection_pool]):
     remove_secret_query = Query. \
         from_(secrets_table). \
         delete(). \
         where(secrets_table.uuid == uuid_)
 
     with connection_pool.connection() as connection:
-        cursor = connection.cursor()
-        cursor.execute(str(remove_secret_query))
-        cursor.close()
-        connection.commit()
+        cursor = await connection.cursor()
+        await cursor.execute(str(remove_secret_query))
+        await cursor.close()
+        await connection.commit()
 
 
 @inject
-def remove_files_from_db(uuid_: str,
-                         connection_pool: ConnectionPool = Provide[Container.db_connection_pool]):
+async def remove_files_from_db(uuid_: str,
+                               connection_pool: ConnectionPool = Provide[Container.db_connection_pool]):
     remove_files_query = Query. \
         from_(files_table). \
         delete(). \
         where(files_table.secret_id == uuid_)
 
     with connection_pool.connection() as connection:
-        cursor = connection.cursor()
-        cursor.execute(str(remove_files_query))
-        cursor.close()
-        connection.commit()
+        cursor = await connection.cursor()
+        await cursor.execute(str(remove_files_query))
+        await cursor.close()
+        await connection.commit()
 
 
 @inject
