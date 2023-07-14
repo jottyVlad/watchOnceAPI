@@ -6,7 +6,7 @@ from watchonceapi.config import DATABASE_DIRECTORY
 from watchonceapi.db_config import secrets_table, files_table
 
 
-def init_db_tables():
+def migration_v1():
     connection = sqlite3.connect(
         DATABASE_DIRECTORY, check_same_thread=False
     )
