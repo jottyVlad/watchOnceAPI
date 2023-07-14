@@ -9,9 +9,7 @@ from watchonceapi.routers.get_secret import get_secret_router
 
 def set_docs_schema(_app: FastAPI):
     openapi_schema = get_openapi(
-        title="WatchONCE API",
-        version="0.1.0",
-        routes=_app.routes
+        title="WatchONCE API", version="0.1.0", routes=_app.routes
     )
 
     _app.openapi_schema = openapi_schema

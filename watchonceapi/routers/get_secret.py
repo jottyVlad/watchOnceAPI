@@ -2,7 +2,10 @@ from fastapi import APIRouter, Request
 
 from watchonceapi.schema import ResponseSecretSchema
 from watchonceapi.services.get_secret import get_secret_or_404, exception404_if_expired
-from watchonceapi.services.remove_secret import remove_secret_from_db, remove_files_from_db
+from watchonceapi.services.remove_secret import (
+    remove_secret_from_db,
+    remove_files_from_db,
+)
 
 get_secret_router = APIRouter()
 

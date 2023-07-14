@@ -22,7 +22,7 @@ def validated_secret_dto(secret: str, files: List[UploadFile]) -> SecretDTO:
         raise HTTPException(
             status_code=400,
             detail='Object must contain only "text" (optional) and '
-                   '"expire_time" (optional)',
+            '"expire_time" (optional)',
         )
     return SecretDTO(
         uuid_=get_uuid(),
@@ -34,15 +34,15 @@ def validated_secret_dto(secret: str, files: List[UploadFile]) -> SecretDTO:
 
 @inject
 async def add_secret_to_db(
-        secret_dto: SecretDTO,
-        connection_pool: ConnectionPool = Provide[Container.db_connection_pool]
+    secret_dto: SecretDTO,
+    connection_pool: ConnectionPool = Provide[Container.db_connection_pool],
 ):
     with connection_pool.connection() as connection:
         cursor = await connection.cursor()
         add_query = Query.into(secrets_table).insert(
             secret_dto.uuid_,
             secret_dto.text,
-            get_expires_at(datetime.datetime.now(), secret_dto.expire_time)
+            get_expires_at(datetime.datetime.now(), secret_dto.expire_time),
         )
         await cursor.execute(str(add_query))
         await cursor.close()
@@ -50,10 +50,9 @@ async def add_secret_to_db(
 
 
 @inject
-def add_files_to_minio(secret_dto,
-                       client: Minio = Provide[Container.minio_client]):
+def add_files_to_minio(secret_dto, client: Minio = Provide[Container.minio_client]):
     for file in secret_dto.files:
-        filename = f'{secret_dto.uuid_}/{file.filename}'
+        filename = f"{secret_dto.uuid_}/{file.filename}"
         client.put_object(
             bucket_name=WATCHONCE_BUCKET_NAME,
             object_name=filename,
@@ -64,12 +63,14 @@ def add_files_to_minio(secret_dto,
 
 
 @inject
-async def add_files_to_db(secret_dto: SecretDTO,
-                          connection_pool: ConnectionPool = Provide[Container.db_connection_pool]):
+async def add_files_to_db(
+    secret_dto: SecretDTO,
+    connection_pool: ConnectionPool = Provide[Container.db_connection_pool],
+):
     add_file_to_db_query = "INSERT INTO `files` VALUES (?, ?)"
 
     data = [
-        (f'{secret_dto.uuid_}/{file.filename}', secret_dto.uuid_)
+        (f"{secret_dto.uuid_}/{file.filename}", secret_dto.uuid_)
         for file in secret_dto.files
     ]
 
@@ -82,6 +83,6 @@ async def add_files_to_db(secret_dto: SecretDTO,
 
 def get_secret_url(secret_dto: SecretDTO, base_url: str, port: Optional[int]):
     if port:
-        return f'{base_url}:{port}/api/get/{secret_dto.uuid_}'
+        return f"{base_url}:{port}/api/get/{secret_dto.uuid_}"
     else:
-        return f'{base_url}/api/get/{secret_dto.uuid_}'
+        return f"{base_url}/api/get/{secret_dto.uuid_}"

@@ -9,12 +9,12 @@ from watchonceapi.utils.connection_pool import ConnectionPool
 
 
 @inject
-async def remove_secret_from_db(uuid_: str,
-                                connection_pool: ConnectionPool = Provide[Container.db_connection_pool]):
-    remove_secret_query = Query. \
-        from_(secrets_table). \
-        delete(). \
-        where(secrets_table.uuid == uuid_)
+async def remove_secret_from_db(
+    uuid_: str, connection_pool: ConnectionPool = Provide[Container.db_connection_pool]
+):
+    remove_secret_query = (
+        Query.from_(secrets_table).delete().where(secrets_table.uuid == uuid_)
+    )
 
     with connection_pool.connection() as connection:
         cursor = await connection.cursor()
@@ -24,12 +24,12 @@ async def remove_secret_from_db(uuid_: str,
 
 
 @inject
-async def remove_files_from_db(uuid_: str,
-                               connection_pool: ConnectionPool = Provide[Container.db_connection_pool]):
-    remove_files_query = Query. \
-        from_(files_table). \
-        delete(). \
-        where(files_table.secret_id == uuid_)
+async def remove_files_from_db(
+    uuid_: str, connection_pool: ConnectionPool = Provide[Container.db_connection_pool]
+):
+    remove_files_query = (
+        Query.from_(files_table).delete().where(files_table.secret_id == uuid_)
+    )
 
     with connection_pool.connection() as connection:
         cursor = await connection.cursor()
@@ -39,7 +39,7 @@ async def remove_files_from_db(uuid_: str,
 
 
 @inject
-def remove_files_from_minio(uuid_: str,
-                            client: Minio = Provide[Container.minio_client]):
-    client.remove_object(WATCHONCE_BUCKET_NAME,
-                         f'{uuid_}/')
+def remove_files_from_minio(
+    uuid_: str, client: Minio = Provide[Container.minio_client]
+):
+    client.remove_object(WATCHONCE_BUCKET_NAME, f"{uuid_}/")
