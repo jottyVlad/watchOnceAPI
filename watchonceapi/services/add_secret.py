@@ -46,6 +46,7 @@ def add_secret_to_db(
         )
         cursor.execute(str(add_query))
         cursor.close()
+        connection.commit()
 
 
 @inject
@@ -65,19 +66,22 @@ def add_files_to_minio(secret_dto,
 @inject
 def add_files_to_db(secret_dto: SecretDTO,
                     connection_pool: ConnectionPool = Provide[Container.db_connection_pool]):
-    add_file_to_db_query = Query.into(files_table)
-    for file in secret_dto.files:
-        filename = f'{secret_dto.uuid_}/{file.filename}'
-        add_file_to_db_query.insert(filename, secret_dto.uuid_)
+    add_file_to_db_query = "INSERT INTO `files` VALUES (?, ?)"
+
+    data = [
+        (f'{secret_dto.uuid_}/{file.filename}', secret_dto.uuid_)
+        for file in secret_dto.files
+    ]
 
     with connection_pool.connection() as connection:
         cursor = connection.cursor()
-        cursor.execute(str(add_file_to_db_query))
+        cursor.executemany(add_file_to_db_query, data)
         cursor.close()
+        connection.commit()
 
 
 def get_secret_url(secret_dto: SecretDTO, base_url: str, port: Optional[int]):
     if port:
-        return f'{base_url}:{port}/get/{secret_dto.uuid_}'
+        return f'{base_url}:{port}/api/get/{secret_dto.uuid_}'
     else:
-        return f'{base_url}/get/{secret_dto.uuid_}'
+        return f'{base_url}/api/get/{secret_dto.uuid_}'

@@ -14,3 +14,9 @@ class SecretDTO(BaseModel):
     text: Optional[str] = None
     expire_time: int = 0
     files: List[UploadFile] = []
+
+
+class ResponseSecretSchema(BaseModel):
+    text: Optional[str] = None
+    files: List[str] = []
+    expires_at: int

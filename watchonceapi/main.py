@@ -7,7 +7,7 @@ from watchonceapi.config import DATABASE_DIRECTORY
 from watchonceapi.db_config import init_db_tables
 from watchonceapi.dependencies.container import Container
 from watchonceapi.routers.add_secret import add_secret_router
-# from watchonceapi.routers.get_secret import get_secret_router
+from watchonceapi.routers.get_secret import get_secret_router
 
 
 def set_docs_schema(_app: FastAPI):
@@ -34,7 +34,7 @@ def create_app() -> FastAPI:
     # END TODO
 
     app.include_router(add_secret_router, prefix="/api")
-    # app.include_router(get_secret_router, prefix="/api")
+    app.include_router(get_secret_router, prefix="/api")
     set_docs_schema(app)
     return app
 
