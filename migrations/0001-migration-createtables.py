@@ -10,7 +10,7 @@ CREATE_SECRETS_TABLE_IF_NOT_EXISTS = (
     .columns(
         Column("uuid", "VARCHAR(36)", nullable=False),
         Column("text", "TEXT", nullable=True),
-        Column("expires_at", "INTEGER", nullable=False),
+        Column("expires_at", "TIMESTAMP", nullable=False),
     )
     .primary_key("uuid")
     .if_not_exists()

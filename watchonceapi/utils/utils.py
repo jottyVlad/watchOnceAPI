@@ -10,7 +10,7 @@ def get_expires_at(now_datetime, expire_value):
     else:
         expires_at = now_datetime + datetime.timedelta(0, 0, 0, 0, 10)
 
-    return int(expires_at.timestamp())
+    return expires_at
 
 
 def get_uuid():

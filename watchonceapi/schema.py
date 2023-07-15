@@ -1,3 +1,4 @@
+import datetime
 from typing import Optional, List
 
 from fastapi import UploadFile
@@ -19,4 +20,4 @@ class SecretDTO(BaseModel):
 class ResponseSecretSchema(BaseModel):
     text: Optional[str] = None
     files: List[str] = []
-    expires_at: int
+    expires_at: datetime.datetime

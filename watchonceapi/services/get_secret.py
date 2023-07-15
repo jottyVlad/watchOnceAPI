@@ -1,5 +1,5 @@
 import datetime
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from dependency_injector.wiring import inject, Provide
 from fastapi import HTTPException
@@ -55,7 +55,7 @@ async def get_secret_or_404(
     with connection_pool.connection() as connection:
         cursor = await connection.cursor()
         result = await cursor.execute(str(get_secret_query))
-        secret = await result.fetchone()
+        secret: Tuple[str, str, str] = await result.fetchone()
         await cursor.close()
 
     # if secret is not exists
@@ -71,9 +71,10 @@ async def get_secret_or_404(
 
     files = get_files_links(filepaths)
 
-    return ResponseSecretSchema(text=secret[0], files=files, expires_at=secret[1])
+    expires_at = datetime.datetime.strptime(secret[1], "%Y-%m-%dT%H:%M:%S.%f")
+    return ResponseSecretSchema(text=secret[0], files=files, expires_at=expires_at)
 
 
-def exception404_if_expired(expires_at):
-    if int(expires_at) <= datetime.datetime.now().timestamp():
+def exception404_if_expired(expires_at: datetime.datetime):
+    if expires_at.timestamp() <= datetime.datetime.now().timestamp():
         raise HTTPException(status_code=404, detail="Not found")
