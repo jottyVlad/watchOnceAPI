@@ -1,7 +1,6 @@
-from typing import List
+from typing import List, Annotated
 
-from dependency_injector.wiring import inject
-from fastapi import APIRouter, UploadFile, Request
+from fastapi import APIRouter, UploadFile, Request, Form
 
 from watchonceapi.services.add_secret import (
     add_secret_to_db,
@@ -15,12 +14,15 @@ add_secret_router = APIRouter()
 
 
 @add_secret_router.post("/add")
-@inject
 async def add_secret(
     request: Request,
-    secret="{}",
-    files: List[UploadFile] = (),
+    secret: Annotated[str, Form()] = "{}",
+    files: List[UploadFile] = "",
 ):
+    if not files or not files[0].filename:
+        files = []
+    if secret == "":
+        secret = "{}"
     secret_dto = validated_secret_dto(secret, files)
     await add_secret_to_db(secret_dto)
     await add_files_to_db(secret_dto)

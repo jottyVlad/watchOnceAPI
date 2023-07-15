@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 
 from watchonceapi.schema import ResponseSecretSchema
 from watchonceapi.services.get_secret import get_secret_or_404, exception404_if_expired

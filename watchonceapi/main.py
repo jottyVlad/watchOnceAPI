@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
-from watchonceapi.migrations.migration_v1 import migration_v1
 from watchonceapi.dependencies.container import Container
 from watchonceapi.routers.add_secret import add_secret_router
 from watchonceapi.routers.get_secret import get_secret_router
@@ -21,10 +20,6 @@ def create_app() -> FastAPI:
 
     _app = FastAPI()
     _app.container = container
-
-    # TODO: delete initializing tables on server start
-    migration_v1()
-    # ENDTODO
 
     _app.include_router(add_secret_router, prefix="/api")
     _app.include_router(get_secret_router, prefix="/api")
