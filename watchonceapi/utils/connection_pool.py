@@ -31,7 +31,7 @@ class ConnectionPool:
         try:
             return self.pool.get(timeout=timeout)
         except queue.Empty:
-            raise RuntimeError("Timeout: No available pool in the pool.")
+            raise RuntimeError("Timeout: No available connections in poll.")
 
     def release_connection(self, conn):
         self.pool.put(conn)
