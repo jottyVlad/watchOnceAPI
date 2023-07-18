@@ -2,8 +2,7 @@ from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
 from watchonceapi.dependencies.container import Container
-from watchonceapi.routers.add_secret import add_secret_router
-from watchonceapi.routers.get_secret import get_secret_router
+from watchonceapi.routers.api_secret import api_secret_router
 
 
 def set_docs_schema(_app: FastAPI):
@@ -21,8 +20,7 @@ def create_app() -> FastAPI:
     _app = FastAPI()
     _app.container = container
 
-    _app.include_router(add_secret_router, prefix="/api")
-    _app.include_router(get_secret_router, prefix="/api")
+    _app.include_router(api_secret_router, prefix="/api")
     set_docs_schema(_app)
     return _app
 

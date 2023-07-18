@@ -1,4 +1,5 @@
 import datetime
+from collections import namedtuple
 from typing import Optional, List
 
 from fastapi import UploadFile
@@ -21,3 +22,6 @@ class ResponseSecretSchema(BaseModel):
     text: Optional[str] = None
     files: List[str] = []
     expires_at: datetime.datetime
+
+
+DBGetSecretTuple = namedtuple('DatabaseGetSecretTuple', ['text', 'expires_at'])

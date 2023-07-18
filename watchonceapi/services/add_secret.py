@@ -1,23 +1,23 @@
 import datetime
-from typing import List, Optional
+from typing import List, Optional, Union
 
-from dependency_injector.wiring import inject, Provide
-from fastapi import UploadFile, HTTPException
+from fastapi import UploadFile, HTTPException, Request
 from minio import Minio
 from pydantic import ValidationError
 from pypika import Query
 
 from watchonceapi.config import WATCHONCE_BUCKET_NAME
 from watchonceapi.db_config import secrets_table
-from watchonceapi.dependencies.container import Container
 from watchonceapi.schema import SecretDTO, SecretSchema
 from watchonceapi.utils.connection_pool import ConnectionPool
 from watchonceapi.utils.utils import get_uuid, get_expires_at
 
 
-def validated_secret_dto(secret: str, files: List[UploadFile]) -> SecretDTO:
+def validate_secret(secret: str, files: List[UploadFile]) -> SecretDTO:
     try:
         validated_model = SecretSchema.model_validate_json(secret)
+        if not validated_model.text and not files:
+            raise ValidationError
     except ValidationError:
         raise HTTPException(
             status_code=400,
@@ -32,10 +32,9 @@ def validated_secret_dto(secret: str, files: List[UploadFile]) -> SecretDTO:
     )
 
 
-@inject
 async def add_secret_to_db(
     secret_dto: SecretDTO,
-    connection_pool: ConnectionPool = Provide[Container.db_connection_pool],
+    connection_pool: ConnectionPool,
 ):
     with connection_pool.connection() as connection:
         cursor = await connection.cursor()
@@ -49,8 +48,7 @@ async def add_secret_to_db(
         await connection.commit()
 
 
-@inject
-def add_files_to_minio(secret_dto, client: Minio = Provide[Container.minio_client]):
+def add_files_to_minio(secret_dto, client: Minio):
     for file in secret_dto.files:
         filename = f"{secret_dto.uuid_}/{file.filename}"
         client.put_object(
@@ -62,10 +60,9 @@ def add_files_to_minio(secret_dto, client: Minio = Provide[Container.minio_clien
         )
 
 
-@inject
 async def add_files_to_db(
     secret_dto: SecretDTO,
-    connection_pool: ConnectionPool = Provide[Container.db_connection_pool],
+    connection_pool: ConnectionPool,
 ):
     add_file_to_db_query = "INSERT INTO `files` VALUES (?, ?)"
 
@@ -86,3 +83,22 @@ def get_secret_url(secret_dto: SecretDTO, base_url: str, port: Optional[int]):
         return f"{base_url}:{port}/api/get/{secret_dto.uuid_}"
     else:
         return f"{base_url}/api/get/{secret_dto.uuid_}"
+
+
+async def process_add_secret_request(
+    request: Request,
+    secret: str,
+    files: Union[List[UploadFile], str],
+    connection_pool: ConnectionPool,
+    minio_client: Minio,
+) -> str:
+
+    if not files or not files[0].filename:
+        files = []
+    if secret == "":
+        secret = "{}"
+    secret_dto = validate_secret(secret, files)
+    await add_secret_to_db(secret_dto, connection_pool)
+    await add_files_to_db(secret_dto, connection_pool)
+    add_files_to_minio(secret_dto, minio_client)
+    return get_secret_url(secret_dto, request.base_url.hostname, request.base_url.port)

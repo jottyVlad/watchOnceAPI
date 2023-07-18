@@ -9,7 +9,11 @@ from pypika import Query
 from watchonceapi.config import WATCHONCE_BUCKET_NAME
 from watchonceapi.db_config import secrets_table, files_table
 from watchonceapi.dependencies.container import Container
-from watchonceapi.schema import ResponseSecretSchema
+from watchonceapi.schema import ResponseSecretSchema, DBGetSecretTuple
+from watchonceapi.services.remove_secret import (
+    remove_files_from_db,
+    remove_secret_from_db,
+)
 from watchonceapi.utils.connection_pool import ConnectionPool
 
 
@@ -36,9 +40,8 @@ def get_files_links(
     return files
 
 
-@inject
 async def get_secret_or_404(
-    uuid_: str, connection_pool: ConnectionPool = Provide[Container.db_connection_pool]
+    uuid_: str, connection_pool: ConnectionPool
 ) -> ResponseSecretSchema:
     get_secret_query = (
         Query.from_(secrets_table)
@@ -55,12 +58,13 @@ async def get_secret_or_404(
     with connection_pool.connection() as connection:
         cursor = await connection.cursor()
         result = await cursor.execute(str(get_secret_query))
-        secret: Tuple[str, str, str] = await result.fetchone()
+        secret = await result.fetchone()
         await cursor.close()
 
-    # if secret is not exists
     if not secret:
         raise HTTPException(status_code=404, detail="Secret not found")
+    else:
+        secret = DBGetSecretTuple._make(secret)
 
     with connection_pool.connection() as connection:
         cursor = await connection.cursor()
@@ -71,10 +75,21 @@ async def get_secret_or_404(
 
     files = get_files_links(filepaths)
 
-    expires_at = datetime.datetime.strptime(secret[1], "%Y-%m-%dT%H:%M:%S.%f")
-    return ResponseSecretSchema(text=secret[0], files=files, expires_at=expires_at)
+    expires_at = datetime.datetime.strptime(secret.expires_at, "%Y-%m-%dT%H:%M:%S.%f")
+    return ResponseSecretSchema(text=secret.text, files=files, expires_at=expires_at)
 
 
-def exception404_if_expired(expires_at: datetime.datetime):
+def check_expired(expires_at: datetime.datetime):
     if expires_at.timestamp() <= datetime.datetime.now().timestamp():
         raise HTTPException(status_code=404, detail="Not found")
+
+
+async def process_get_secret_request(
+    secret_id: str, connection_pool: ConnectionPool
+) -> ResponseSecretSchema:
+    secret = await get_secret_or_404(secret_id, connection_pool)
+    await remove_files_from_db(secret_id, connection_pool)
+    await remove_secret_from_db(secret_id, connection_pool)
+    check_expired(secret.expires_at)
+
+    return secret
