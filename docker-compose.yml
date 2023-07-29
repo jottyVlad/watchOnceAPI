@@ -1,6 +1,20 @@
 version: "3.3"
+
 services:
   web:
     build: .
+    volumes:
+      - .:/code
     ports:
       - "8000:8000"
+    env_file:
+      - docker.env
+
+
+  minio:
+    image: 'bitnami/minio:latest'
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    env_file:
+      - docker.env
